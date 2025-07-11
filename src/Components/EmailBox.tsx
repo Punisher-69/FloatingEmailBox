@@ -6,8 +6,14 @@ import {
   IoIosArrowDropdownCircle,
   IoMdCloseCircle,
 } from "react-icons/io";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button, Chip, Input } from "@heroui/react";
+import {
+  makeChip,
+  useEmailBoxEffects,
+  handleChipClose,
+  recalculateErrorType,
+} from "./EmailBoxUtils";
 
 export default function EmailBox() {
   const { isVisible, isMinimized, setIsVisible, setIsMinimized } = useEmail();
@@ -22,79 +28,14 @@ export default function EmailBox() {
     "duplicate" | "invalid" | null
   >(null);
 
-  useEffect(() => {
-    if (lastErrorType === "duplicate" && duplicateEmail) {
-      setErrorMessage("You have duplicate emails.");
-    } else if (lastErrorType === "invalid") {
-      setErrorMessage(`Some emails are invalid: ${inValidEmails.join(", ")}`);
-    } else {
-      setErrorMessage("");
-    }
-  }, [lastErrorType, duplicateEmail, inValidEmails]);
+  useEmailBoxEffects({
+    lastErrorType,
+    duplicateEmail,
+    inValidEmails,
+    setErrorMessage,
+  });
 
   if (!isVisible) return null;
-
-  const isValidEmail = (email: string) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-  const recalculateErrorType = (chipsArr: string[], invalidArr: string[]) => {
-    const validEmails = chipsArr.filter(isValidEmail);
-    const hasDuplicates = validEmails.some(
-      (item, idx, arr) => arr.indexOf(item) !== idx
-    );
-    if (hasDuplicates) {
-      setLastErrorType("duplicate");
-      setDuplicateEmail(true);
-      setInvalid(invalidArr.length > 0);
-      return;
-    }
-    if (invalidArr.length > 0) {
-      setLastErrorType("invalid");
-      setDuplicateEmail(false);
-      setInvalid(true);
-      return;
-    }
-    setLastErrorType(null);
-    setDuplicateEmail(false);
-    setInvalid(false);
-  };
-
-  const makeChip = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const text = inputValue.trim();
-    if ((e.key === "Enter" || e.code === "Space") && text) {
-      e.preventDefault();
-      let isInvalid = !isValidEmail(text);
-      setChips((prev) => {
-        const newChips = [...prev, text];
-        let newInvalids = inValidEmails;
-        if (isInvalid) {
-          newInvalids = [...inValidEmails, text];
-          setInValidEmails(newInvalids);
-        }
-        recalculateErrorType(newChips, newInvalids);
-        return newChips;
-      });
-      setInputValue("");
-    }
-    if (e.key === "Backspace" && !inputValue) {
-      e.preventDefault();
-      if (chips.length > 0) {
-        const lastChip = chips[chips.length - 1];
-        setChips((prev) => {
-          const updatedChips = prev.slice(0, -1);
-          let updatedInvalids = [...inValidEmails];
-          const invalidIndex = updatedInvalids.indexOf(lastChip);
-          if (invalidIndex !== -1) {
-            updatedInvalids.splice(invalidIndex, 1);
-            setInValidEmails(updatedInvalids);
-          }
-          recalculateErrorType(updatedChips, updatedInvalids);
-          return updatedChips;
-        });
-        setInputValue(lastChip);
-      }
-    }
-  };
 
   return (
     <div
@@ -108,9 +49,11 @@ export default function EmailBox() {
       >
         <span>Email</span>
         <div className="space-x-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
+          <Button
+            
+            isIconOnly
+            className="p-0 m-0 min-w-0 w-auto h-auto bg-transparent text-white"
+            onPress={() => {
               setIsMinimized(!isMinimized);
             }}
           >
@@ -119,10 +62,14 @@ export default function EmailBox() {
             ) : (
               <IoIosArrowDropdownCircle />
             )}
-          </button>
-          <button onClick={() => setIsVisible(false)}>
+          </Button>
+          <Button
+            isIconOnly
+            className="p-0 m-0 min-w-0 w-auto h-auto bg-transparent text-white"
+            onPress={() => setIsVisible(false)}
+          >
             <IoMdCloseCircle />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -149,20 +96,24 @@ export default function EmailBox() {
                       size="sm"
                       color="primary"
                       variant="shadow"
-                      onClose={() => {
-                        const updatedChips = chips.filter(
-                          (_, i) => i !== index
-                        );
-
-                        const invalidIndex = inValidEmails.indexOf(chip);
-                        let updatedInvalids = [...inValidEmails];
-                        if (invalidIndex !== -1) {
-                          updatedInvalids.splice(invalidIndex, 1);
-                        }
-                        setChips(updatedChips);
-                        setInValidEmails(updatedInvalids);
-                        recalculateErrorType(updatedChips, updatedInvalids);
-                      }}
+                      onClose={() =>
+                        handleChipClose({
+                          index,
+                          chips,
+                          chip,
+                          inValidEmails,
+                          setChips,
+                          setInValidEmails,
+                          recalculateErrorType: (chipsArr, invalidArr) =>
+                            recalculateErrorType(
+                              chipsArr,
+                              invalidArr,
+                              setLastErrorType,
+                              setDuplicateEmail,
+                              setInvalid
+                            ),
+                        })
+                      }
                     >
                       {chip}
                     </Chip>
@@ -170,7 +121,25 @@ export default function EmailBox() {
                 </div>
               }
               placeholder="Press Enter or Space to add email"
-              onKeyDown={makeChip}
+              onKeyDown={(e) =>
+                makeChip({
+                  e,
+                  inputValue,
+                  setChips,
+                  inValidEmails,
+                  setInValidEmails,
+                  recalculateErrorType: (chipsArr, invalidArr) =>
+                    recalculateErrorType(
+                      chipsArr,
+                      invalidArr,
+                      setLastErrorType,
+                      setDuplicateEmail,
+                      setInvalid
+                    ),
+                  setInputValue,
+                  chips,
+                })
+              }
             />
           </div>
           <div>
