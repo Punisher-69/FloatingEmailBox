@@ -179,7 +179,7 @@ export default function EmailBox() {
           <Editor
             value={value}
             onTextChange={(e) => setValue(e.htmlValue ?? "")}
-            style={{ height: "320px" }}
+            style={{ height: "260px" }}
           />
           <div className="flex justify-between">
             <Button
