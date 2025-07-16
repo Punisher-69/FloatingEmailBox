@@ -1,1 +1,1 @@
-Deployed Project at https://floatingemailbox.netlify.app
+Deployed Project at https://emailbox54.netlify.app
