@@ -1,25 +1,47 @@
 import { create } from "zustand";
-
-interface EmailState {
+import { nanoid } from 'nanoid'
+export interface EmailBox {
+  id: string;
+  isMinimized: boolean;
   to: string;
   cc: string[];
   subject: string;
   editorValue: string;
-  setTo: (to: string) => void;
-  setCc: (cc: string[]) => void;
-  setSubject: (subject: string) => void;
-  setEditorValue: (value: string) => void;
-  reset: () => void;
 }
 
-export const useEmailStore = create<EmailState>((set) => ({
-  to: "",
-  cc: [],
-  subject: "",
-  editorValue: "",
-  setTo: (to) => set({ to }),
-  setCc: (cc) => set({ cc }),
-  setSubject: (subject) => set({ subject }),
-  setEditorValue: (editorValue) => set({ editorValue }),
-  reset: () => set({ to: "", cc: [], subject: "", editorValue: "" }),
+interface EmailStore {
+  boxes: EmailBox[];
+  addBox: () => void;
+  removeBox: (id: string) => void;
+  updateBox: (id: string, updates: Partial<EmailBox>) => void;
+}
+
+
+
+export const useEmailStore = create<EmailStore>((set) => ({
+  boxes: [],
+  addBox: () =>
+    set((state) => ({
+      boxes: [
+        ...state.boxes,
+        {
+          id: nanoid(),
+          isMinimized: false,
+          to: "",
+          cc: [],
+          subject: "",
+          editorValue: "",
+        } as EmailBox ,
+      ],
+    })),
+  removeBox: (id) =>
+    set((state) => ({
+      boxes: state.boxes.filter((box) => box.id !== id),
+    })),
+  updateBox: (id, updates) =>
+    set((state) => ({
+      boxes: state.boxes.map((box) =>
+        box.id === id ? { ...box, ...updates } : box
+      ),
+    })),
 }));

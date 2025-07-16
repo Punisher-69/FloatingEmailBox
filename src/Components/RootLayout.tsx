@@ -1,11 +1,12 @@
 import { MdEmail } from "react-icons/md";
 import { Button, Tooltip } from "@heroui/react";
 import { useNavigate, Outlet } from "react-router";
-import { useEmail } from "./EmailContext";
+
 import EmailBox from "./EmailBox";
+import { useEmailStore } from "./emailStore";
 
 export default function RootLayout() {
-  const { setIsVisible, setIsMinimized } = useEmail();
+  const { boxes, addBox } = useEmailStore();
 
   const navigate = useNavigate();
 
@@ -16,6 +17,8 @@ export default function RootLayout() {
   const handleContact = () => {
     navigate("/contact");
   };
+
+  let rightOffset = 1;
   return (
     <div>
       <div className="flex justify-between px-10 h-12 items-center bg-[#e0aaff]">
@@ -24,8 +27,8 @@ export default function RootLayout() {
           <button>
             <MdEmail
               onClick={() => {
-                setIsVisible(true);
-                setIsMinimized(false);
+                addBox();
+                console.log("box created");
               }}
               className="m-0 p-0 text-xl text-blue-700"
             />
@@ -53,7 +56,16 @@ export default function RootLayout() {
           <Outlet />
         </div>
       </div>
-      <EmailBox />
+      <div >
+        {boxes.map((box) => {
+          const offset = rightOffset;
+          const width = box.isMinimized ? 15 : 35; 
+          rightOffset += width + 1; 
+
+          return <EmailBox key={box.id} boxId={box.id} offset={offset} />;
+        })}
+      </div>
+      <div />
     </div>
   );
 }
