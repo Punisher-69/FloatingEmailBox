@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Chip, Input } from "@heroui/react";
+import { Chip } from "@heroui/react";
 
 interface ChipsInputProps {
   chips: string[];
@@ -11,8 +11,8 @@ export default function ChipsInput({ chips, setChips }: ChipsInputProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const [inValid, setInvalid] = useState(false);
   const [inputValue, setInputValue] = useState<string>("");
+  const [isFocused, setIsFocused] = useState(false);
 
-  // Custom recalculateErrorType to update all error states
   const recalcErrorType = (chipsArr: string[], invalidArr: string[]) => {
     const validEmails = chipsArr.filter((email) =>
       /^[^\s@]+@[^-\s@]+\.[^\s@]+$/.test(email)
@@ -20,16 +20,19 @@ export default function ChipsInput({ chips, setChips }: ChipsInputProps) {
     const hasDuplicates = validEmails.some(
       (item, idx, arr) => arr.indexOf(item) !== idx
     );
+
     if (hasDuplicates) {
-      setInvalid(invalidArr.length > 0);
+      setInvalid(true);
       setErrorMessage("You have duplicate emails.");
       return;
     }
+
     if (invalidArr.length > 0) {
       setInvalid(true);
       setErrorMessage(`Some emails are invalid: ${invalidArr.join(", ")}`);
       return;
     }
+
     setInvalid(false);
     setErrorMessage("");
   };
@@ -61,6 +64,7 @@ export default function ChipsInput({ chips, setChips }: ChipsInputProps) {
       recalcErrorType(newChips, newInvalids);
       setInputValue("");
     }
+
     if (e.key === "Backspace" && !inputValue) {
       e.preventDefault();
       if (chips.length > 0) {
@@ -80,31 +84,53 @@ export default function ChipsInput({ chips, setChips }: ChipsInputProps) {
   };
 
   return (
-    <Input
-      isInvalid={inValid}
-      errorMessage={errorMessage}
-      label="Cc :"
-      labelPlacement="outside-left"
-      className="w-full py-1 bg-white"
-      value={inputValue || ""}
-      onChange={(e) => setInputValue(e.target.value)}
-      startContent={
-        <div className="flex gap-1 items-center">
-          {chips.map((chip, index: number) => (
-            <Chip
-              key={index}
-              size="sm"
-              color="primary"
-              variant="shadow"
-              onClose={() => handleChipRemove(index, chip)}
-            >
-              {chip}
-            </Chip>
-          ))}
+    <div className="w-full">
+      <div className="flex items-start gap-3">
+        <label className="text-sm font-medium text-foreground mt-3 min-w-[30px]">
+          Cc:
+        </label>
+        <div className="flex-1">
+          <div
+            className={`group relative h-[80px] px-3 py-2 rounded-lg border-2 transition-colors duration-200 overflow-y-auto ${
+              inValid 
+                ? "border-danger bg-danger-50" 
+                : isFocused 
+                  ? "border-primary bg-default-100" 
+                  : "border-default-300 bg-default-100 hover:border-default-400"
+            }`}
+          >
+            <div className="h-full">
+              <div className="flex gap-1 items-start flex-wrap content-start h-full">
+              {chips.map((chip, index: number) => (
+                <Chip
+                  key={index}
+                  size="sm"
+                  color={inValidEmails.includes(chip) ? "danger" : "primary"}
+                  variant="shadow"
+                  onClose={() => handleChipRemove(index, chip)}
+                  className="my-1"
+                >
+                  {chip}
+                </Chip>
+              ))}
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleMakeChip}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                placeholder={chips.length === 0 ? "Type and press Enter or Space to add email" : ""}
+                className="flex-1 min-w-[200px] outline-none bg-transparent text-foreground placeholder:text-foreground-500 my-1"
+              />
+              </div>
+            </div>
+          </div>
+          {inValid && errorMessage && (
+            <p className="text-danger text-sm mt-1">{errorMessage}</p>
+          )}
         </div>
-      }
-      placeholder="Press Enter or Space to add email"
-      onKeyDown={handleMakeChip}
-    />
+      </div>
+    </div>
   );
 }
