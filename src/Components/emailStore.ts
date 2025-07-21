@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid'
 export interface EmailBox {
   id: string;
   isMinimized: boolean;
-  to: string;
+  to: string[];
   cc: string[];
   subject: string;
   editorValue: string;
@@ -27,7 +27,7 @@ export const useEmailStore = create<EmailStore>((set) => ({
         {
           id: nanoid(),
           isMinimized: false,
-          to: "",
+          to: [],
           cc: [],
           subject: "",
           editorValue: "",

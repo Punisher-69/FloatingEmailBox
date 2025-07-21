@@ -20,6 +20,8 @@ import {
 import ChipsInput from "./ChipsInput";
 import { useEmailStore } from "./emailStore";
 
+import SelectContact from "./SelectContact";
+
 export default function EmailBox({
   boxId,
   offset,
@@ -109,13 +111,9 @@ export default function EmailBox({
       {!box.isMinimized && (
         <div className="p-4 flex flex-col gap-2">
           <p className="text-sm">From : usman@gmail.com</p>
-          <div>
+          <div className="flex gap-2 items-center">
             To:
-            <InputText
-              value={box.to}
-              placeholder="search for contact"
-              onChange={(e) => updateBox(box.id, { to: e.target.value })}
-            />
+            <SelectContact/>
           </div>
           <div>
             <ChipsInput chips={box.cc} setChips={setCcWrapper} />
