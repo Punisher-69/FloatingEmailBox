@@ -17,6 +17,7 @@ export default function RootLayout() {
   const handleContact = () => {
     navigate("/contact");
   };
+  console.log("Testing n8n");
 
   let rightOffset = 1;
   return (
@@ -56,11 +57,11 @@ export default function RootLayout() {
           <Outlet />
         </div>
       </div>
-      <div >
+      <div>
         {boxes.map((box) => {
           const offset = rightOffset;
-          const width = box.isMinimized ? 15 : 35; 
-          rightOffset += width + 1; 
+          const width = box.isMinimized ? 15 : 35;
+          rightOffset += width + 1;
 
           return <EmailBox key={box.id} boxId={box.id} offset={offset} />;
         })}
