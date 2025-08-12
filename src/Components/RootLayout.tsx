@@ -17,7 +17,7 @@ export default function RootLayout() {
   const handleContact = () => {
     navigate("/contact");
   };
-  console.log("Testing");
+  console.log("Testing1");
 
   let rightOffset = 1;
   return (
